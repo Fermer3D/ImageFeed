@@ -132,18 +132,6 @@
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vBW-2f-LsP">
                                 <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                                 <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bNN-Xp-e6h">
-                                        <rect key="frame" x="171.66666666666666" y="776" width="50" height="50"/>
-                                        <constraints>
-                                            <constraint firstAttribute="height" constant="50" id="2TQ-bV-Vam"/>
-                                            <constraint firstAttribute="width" constant="50" id="SjZ-7h-i8g"/>
-                                        </constraints>
-                                        <state key="normal" title="Button"/>
-                                        <buttonConfiguration key="configuration" style="plain" image="Sharing"/>
-                                        <connections>
-                                            <action selector="didTapShareButton:" destination="WMN-YW-LJS" eventType="touchUpInside" id="512-2x-TJd"/>
-                                        </connections>
-                                    </button>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="0" translatesAutoresizingMaskIntoConstraints="NO" id="vNK-2k-Z5Y">
                                         <rect key="frame" x="0.0" y="0.0" width="271" height="352"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -152,6 +140,18 @@
                                 <viewLayoutGuide key="contentLayoutGuide" id="O0q-6s-fNL"/>
                                 <viewLayoutGuide key="frameLayoutGuide" id="rMR-bx-RLK"/>
                             </scrollView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bNN-Xp-e6h">
+                                <rect key="frame" x="171.66666666666666" y="760" width="50" height="50"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="2TQ-bV-Vam"/>
+                                    <constraint firstAttribute="width" constant="50" id="SjZ-7h-i8g"/>
+                                </constraints>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" image="Sharing"/>
+                                <connections>
+                                    <action selector="didTapShareButton:" destination="WMN-YW-LJS" eventType="touchUpInside" id="512-2x-TJd"/>
+                                </connections>
+                            </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nsH-CF-m0l">
                                 <rect key="frame" x="8" y="67" width="44" height="44"/>
                                 <constraints>
@@ -169,13 +169,13 @@
                         <color key="backgroundColor" red="0.10196078431372549" green="0.10588235294117647" blue="0.13333333333333333" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                         <constraints>
                             <constraint firstItem="vBW-2f-LsP" firstAttribute="leading" secondItem="w3j-EK-GZq" secondAttribute="leading" id="3rB-SZ-Lpd"/>
-                            <constraint firstItem="bNN-Xp-e6h" firstAttribute="centerX" secondItem="w3j-EK-GZq" secondAttribute="centerX" id="AcH-uG-dD8"/>
+                            <constraint firstItem="bNN-Xp-e6h" firstAttribute="centerX" secondItem="w3j-EK-GZq" secondAttribute="centerX" id="D4e-P9-MxL"/>
                             <constraint firstItem="nsH-CF-m0l" firstAttribute="leading" secondItem="w3j-EK-GZq" secondAttribute="leading" constant="8" id="Iyx-7w-kWG"/>
                             <constraint firstItem="w3j-EK-GZq" firstAttribute="trailing" secondItem="vBW-2f-LsP" secondAttribute="trailing" id="KF8-Oi-EH5"/>
                             <constraint firstItem="vBW-2f-LsP" firstAttribute="bottom" secondItem="MW1-GM-lO4" secondAttribute="bottom" id="VKD-pE-Woh"/>
+                            <constraint firstItem="w3j-EK-GZq" firstAttribute="bottom" secondItem="bNN-Xp-e6h" secondAttribute="bottom" constant="8" id="WCF-Xx-mtI"/>
                             <constraint firstItem="nsH-CF-m0l" firstAttribute="top" secondItem="w3j-EK-GZq" secondAttribute="top" constant="8" id="rOW-P9-eu7"/>
                             <constraint firstAttribute="top" secondItem="vBW-2f-LsP" secondAttribute="top" id="vBp-pa-Nxg"/>
-                            <constraint firstItem="bNN-Xp-e6h" firstAttribute="bottom" secondItem="w3j-EK-GZq" secondAttribute="bottom" constant="8" id="xW6-7U-ZNh"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="NPa-9B-MpK"/>
