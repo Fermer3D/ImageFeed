@@ -25,19 +25,41 @@ extension URLSession {
             }
         }
         
-        let task = dataTask(with: request, completionHandler: { data, response, error in
-            if let data = data, let response = response, let statusCode = (response as? HTTPURLResponse)?.statusCode {
-                if 200 ..< 300 ~= statusCode {
-                    fulfillCompletionOnTheMainThread(.success(data))
-                } else {
-                    fulfillCompletionOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode)))
-                }
-            } else if let error = error {
+        let task = dataTask(with: request) { data, response, error in
+            
+            if let error = error {
+                print("❌ [URLSession]: System Error - \(error.localizedDescription)")
                 fulfillCompletionOnTheMainThread(.failure(NetworkError.urlRequestError(error)))
-            } else {
-                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
+                return
             }
-        })
+            
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("❌ [URLSession]: Not an HTTP Response")
+                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
+                return
+            }
+            
+            let statusCode = httpResponse.statusCode
+            print("🌐 [URLSession]: Status Code - \(statusCode)")
+            
+            
+            if !(200..<300 ~= statusCode) {
+                print("❌ [URLSession]: Server Error Status - \(statusCode)")
+                fulfillCompletionOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode)))
+                return
+            }
+            
+            
+            guard let data = data, !data.isEmpty else {
+                print("❌ [URLSession]: Response data is empty")
+                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
+                return
+            }
+            
+           
+            fulfillCompletionOnTheMainThread(.success(data))
+        }
         return task
     }
 }

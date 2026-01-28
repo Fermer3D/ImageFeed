@@ -7,42 +7,50 @@
 
 import Foundation
 
+import Foundation
+
 final class OAuth2Service {
+   
     static let shared = OAuth2Service()
+    private init() {}
+    
+    
     private let urlSession = URLSession.shared
+    private let storage = OAuth2TokenStorage()
     
     private(set) var authToken: String? {
-        get {
-            return OAuth2TokenStorage().token
-        }
-        set {
-            OAuth2TokenStorage().token = newValue
-        }
+        get { storage.token }
+        set { storage.token = newValue }
     }
     
-    func fetchOAuthToken(
-        _ code: String,
-        completion: @escaping (Result<String, Error>) -> Void
-    ) {
-        let request = authTokenRequest(code: code)
+    
+    func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
+        guard let request = authTokenRequest(code: code) else {
+            completion(.failure(NetworkError.invalidRequest))
+            return
+        }
         
         let task = urlSession.data(for: request) { [weak self] result in
             switch result {
             case .success(let data):
                 do {
                     let decoder = JSONDecoder()
-                    // Декодируем ответ. Ключи в JSON (snake_case) можно сопоставить автоматически
+                   
                     decoder.keyDecodingStrategy = .convertFromSnakeCase
+                    
                     let body = try decoder.decode(OAuthTokenResponseBody.self, from: data)
                     
                     self?.authToken = body.accessToken
                     completion(.success(body.accessToken))
+                    
+                    print("✅ [OAuth2Service]: Токен успешно получен и распарсен")
                 } catch {
-                    print("⚠️ Ошибка декодирования: \(error)")
+                    print("❌ [OAuth2Service]: Ошибка декодирования — \(error)")
                     completion(.failure(error))
                 }
+                
             case .failure(let error):
-                print("⚠️ Сетевая ошибка: \(error)")
+                print("❌ [OAuth2Service]: Сетевая ошибка — \(error)")
                 completion(.failure(error))
             }
         }
@@ -50,27 +58,31 @@ final class OAuth2Service {
     }
 }
 
-// MARK: - Helpers
+
 private extension OAuth2Service {
-    func authTokenRequest(code: String) -> URLRequest {
-        var urlComponents = URLComponents(string: "https://unsplash.com/oauth/token")!
-        urlComponents.queryItems = [
-            URLQueryItem(name: "client_id", value: Constants.accessKey),
-            URLQueryItem(name: "client_secret", value: Constants.secretKey),
-            URLQueryItem(name: "redirect_uri", value: Constants.redirectURI),
-            URLQueryItem(name: "code", value: code),
-            URLQueryItem(name: "grant_type", value: "authorization_code")
+    func authTokenRequest(code: String) -> URLRequest? {
+        guard let url = URL(string: "https://unsplash.com/oauth/token") else {
+            return nil
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        let parameters = [
+            "client_id": Constants.accessKey,
+            "client_secret": Constants.secretKey,
+            "redirect_uri": Constants.redirectURI,
+            "code": code,
+            "grant_type": "authorization_code"
         ]
         
-        var request = URLRequest(url: urlComponents.url!)
-        request.httpMethod = "POST"
+        let bodyString = parameters
+            .map { "\($0.key)=\($0.value)" }
+            .joined(separator: "&")
+        
+        request.httpBody = bodyString.data(using: .utf8)
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        
         return request
     }
-}
-
-struct OAuthTokenResponseBody: Decodable {
-    let accessToken: String
-    let tokenType: String
-    let scope: String
-    let createdAt: Int
 }

@@ -38,18 +38,24 @@ final class AuthViewController: UIViewController {
     }
     
     private func configureBackButton() {
-        navigationController?.navigationBar.backIndicatorImage = UIImage(named: "nav_back_button")
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(named: "nav_back_button")
+       
+        let backImage = UIImage(named: "nav_back_button")
+        navigationController?.navigationBar.backIndicatorImage = backImage
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = backImage
+        
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         navigationItem.backBarButtonItem?.tintColor = UIColor(named: "ypBlack")
     }
 }
 
+
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
         
+        
         vc.dismiss(animated: true) { [weak self] in
             guard let self = self else { return }
+            
             
             self.fetchOAuthToken(code) { [weak self] result in
                 guard let self = self else { return }
@@ -71,10 +77,14 @@ extension AuthViewController: WebViewViewControllerDelegate {
     }
 }
 
+
 extension AuthViewController {
     private func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
         oauth2Service.fetchOAuthToken(code) { result in
-            completion(result)
+            
+            DispatchQueue.main.async {
+                completion(result)
+            }
         }
     }
     
