@@ -189,10 +189,10 @@
             </objects>
             <point key="canvasLocation" x="336.64122137404581" y="-586.61971830985919"/>
         </scene>
-        <!--Tab Bar Controller-->
+        <!--Tab Bar View Controller-->
         <scene sceneID="EhV-c2-Zdk">
             <objects>
-                <tabBarController storyboardIdentifier="TabBarViewController" id="wSn-D1-bVK" sceneMemberID="viewController">
+                <tabBarController storyboardIdentifier="TabBarViewController" id="wSn-D1-bVK" customClass="TabBarViewController" sceneMemberID="viewController">
                     <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" translucent="NO" id="i7f-UF-qLd">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -215,7 +215,7 @@
         <!--Auth View Controller-->
         <scene sceneID="Mz0-Th-Qsj">
             <objects>
-                <viewController id="ygW-dQ-pf8" customClass="AuthViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController modalPresentationStyle="fullScreen" id="ygW-dQ-pf8" customClass="AuthViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="bz6-7l-Mhf">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -269,7 +269,7 @@
         <!--Web View View Controller-->
         <scene sceneID="ZoF-uA-C30">
             <objects>
-                <viewController id="PNY-ZK-duH" customClass="WebViewViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController modalPresentationStyle="fullScreen" id="PNY-ZK-duH" customClass="WebViewViewController" customModule="ImageFeed" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="5og-WD-6B9">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -338,7 +338,7 @@
         <!--Navigation Controller-->
         <scene sceneID="jgm-Gn-XGZ">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="0JQ-67-Hkz" sceneMemberID="viewController">
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" modalPresentationStyle="fullScreen" id="0JQ-67-Hkz" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationItem key="navigationItem" id="rCb-ba-6Vt"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="BFN-cn-TRo">
@@ -347,12 +347,12 @@
                     </navigationBar>
                     <nil name="viewControllers"/>
                     <connections>
-                        <segue destination="ygW-dQ-pf8" kind="relationship" relationship="rootViewController" id="1JE-Mt-557"/>
+                        <segue destination="ygW-dQ-pf8" kind="relationship" relationship="rootViewController" id="Xy7-KT-d7O"/>
                     </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="14a-nG-b3w" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1529.0076335877861" y="-1375.3521126760563"/>
+            <point key="canvasLocation" x="-1665" y="-1373"/>
         </scene>
         <!--Splash View Controller-->
         <scene sceneID="8MP-Cw-NTb">
@@ -374,12 +374,12 @@
                         </constraints>
                     </view>
                     <connections>
-                        <segue destination="0JQ-67-Hkz" kind="presentation" identifier="ShowAuthenticationScreen" modalPresentationStyle="fullScreen" id="cbf-Jl-0YZ"/>
+                        <segue destination="0JQ-67-Hkz" kind="presentation" identifier="ShowAuthenticationScreen" id="MMw-u3-GS1"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="fkr-hL-EbD" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-2619" y="-1373"/>
+            <point key="canvasLocation" x="-2732" y="-1373"/>
         </scene>
     </scenes>
     <resources>

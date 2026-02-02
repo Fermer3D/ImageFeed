@@ -81,7 +81,7 @@ extension AuthViewController: WebViewViewControllerDelegate {
 extension AuthViewController {
     private func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
         oauth2Service.fetchOAuthToken(code) { result in
-            
+            // Выполняем completion на главном потоке для безопасности UI
             DispatchQueue.main.async {
                 completion(result)
             }
