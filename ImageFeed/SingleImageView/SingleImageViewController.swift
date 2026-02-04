@@ -44,7 +44,7 @@ final class SingleImageViewController: UIViewController {
     private func configure(with image: UIImage) {
         imageView.image = image
         
-        // ВАЖНО: работаем с фреймами -> отключи влияние Auto Layout на imageView
+        
         imageView.translatesAutoresizingMaskIntoConstraints = true
         
         view.layoutIfNeeded()

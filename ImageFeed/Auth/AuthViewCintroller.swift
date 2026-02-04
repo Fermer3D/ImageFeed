@@ -38,7 +38,6 @@ final class AuthViewController: UIViewController {
     }
     
     private func configureBackButton() {
-       
         let backImage = UIImage(named: "nav_back_button")
         navigationController?.navigationBar.backIndicatorImage = backImage
         navigationController?.navigationBar.backIndicatorTransitionMaskImage = backImage
@@ -48,40 +47,34 @@ final class AuthViewController: UIViewController {
     }
 }
 
-
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
         
         
-        vc.dismiss(animated: true) { [weak self] in
+        fetchOAuthToken(code) { [weak self] result in
             guard let self = self else { return }
             
-            
-            self.fetchOAuthToken(code) { [weak self] result in
-                guard let self = self else { return }
+            switch result {
+            case .success:
                 
-                switch result {
-                case .success:
-                    
-                    self.delegate?.didAuthenticate(self)
-                case .failure(let error):
-                    
-                    self.showErrorAlert(with: error)
-                }
+                self.delegate?.didAuthenticate(self)
+                
+            case .failure(let error):
+                
+                self.navigationController?.popViewController(animated: true)
+                self.showErrorAlert(with: error)
             }
         }
     }
-    
+
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
-        vc.dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
     }
 }
-
 
 extension AuthViewController {
     private func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
         oauth2Service.fetchOAuthToken(code) { result in
-            // Выполняем completion на главном потоке для безопасности UI
             DispatchQueue.main.async {
                 completion(result)
             }

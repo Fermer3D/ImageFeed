@@ -9,7 +9,6 @@ import UIKit
 
 final class SplashViewController: UIViewController {
     private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
-
     private let storage = OAuth2TokenStorage()
 
     override func viewDidAppear(_ animated: Bool) {
@@ -39,7 +38,10 @@ final class SplashViewController: UIViewController {
         
         let tabBarController = UIStoryboard(name: "Main", bundle: .main)
             .instantiateViewController(withIdentifier: "TabBarViewController")
+        
+        
         window.rootViewController = tabBarController
+        UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
     }
 }
 
@@ -62,8 +64,9 @@ extension SplashViewController {
 
 extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
-        vc.dismiss(animated: true)
         
         switchToTabBarController()
+        
+        vc.dismiss(animated: true, completion: nil)
     }
 }
