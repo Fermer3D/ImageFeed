@@ -74,12 +74,8 @@ extension AuthViewController: WebViewViewControllerDelegate {
 
 extension AuthViewController {
     private func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        oauth2Service.fetchOAuthToken(code) { result in
-            DispatchQueue.main.async {
-                completion(result)
+        oauth2Service.fetchOAuthToken(code, completion: completion)
             }
-        }
-    }
     
     private func showErrorAlert(with error: Error) {
         let alert = UIAlertController(

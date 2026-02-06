@@ -23,8 +23,14 @@ final class OAuth2Service {
     
     
     func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
+        let fulfillCompletionOnTheMainThread: (Result<String, Error>) -> Void = { result in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
+        
         guard let request = authTokenRequest(code: code) else {
-            completion(.failure(NetworkError.invalidRequest))
+            fulfillCompletionOnTheMainThread(.failure(NetworkError.invalidRequest))
             return
         }
         
@@ -39,17 +45,17 @@ final class OAuth2Service {
                     let body = try decoder.decode(OAuthTokenResponseBody.self, from: data)
                     
                     self?.authToken = body.accessToken
-                    completion(.success(body.accessToken))
+                    fulfillCompletionOnTheMainThread(.success(body.accessToken))
                     
                     print("✅ [OAuth2Service]: Токен успешно получен и распарсен")
                 } catch {
                     print("❌ [OAuth2Service]: Ошибка декодирования — \(error)")
-                    completion(.failure(error))
+                    fulfillCompletionOnTheMainThread(.failure(error))
                 }
                 
             case .failure(let error):
                 print("❌ [OAuth2Service]: Сетевая ошибка — \(error)")
-                completion(.failure(error))
+                fulfillCompletionOnTheMainThread(.failure(error))
             }
         }
         task.resume()
