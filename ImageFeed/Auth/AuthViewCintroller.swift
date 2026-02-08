@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import ProgressHUD
 
 protocol AuthViewControllerDelegate: AnyObject {
     func didAuthenticate(_ vc: AuthViewController)
@@ -49,42 +50,41 @@ final class AuthViewController: UIViewController {
 
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
+        vc.dismiss(animated: true)
         
+        UIBlockingProgressHUD.show()
         
-        fetchOAuthToken(code) { [weak self] result in
-            guard let self = self else { return }
+        oauth2Service.fetchOAuthToken(code: code) { result in
+            UIBlockingProgressHUD.dismiss()
             
             switch result {
             case .success:
-                
                 self.delegate?.didAuthenticate(self)
-                
-            case .failure(let error):
-                
-                self.navigationController?.popViewController(animated: true)
-                self.showErrorAlert(with: error)
+            case let .failure(error):
+                print("Ошибка при аутентификации: \(error.localizedDescription)")
+                self.showAuthErrorAlert()
             }
         }
     }
 
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
-        navigationController?.popViewController(animated: true)
+        vc.dismiss(animated: true)
     }
 }
 
+//    func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
+//        navigationController?.popViewController(animated: true)
+//    }
+
 extension AuthViewController {
-    private func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        oauth2Service.fetchOAuthToken(code, completion: completion)
-            }
-    
-    private func showErrorAlert(with error: Error) {
-        let alert = UIAlertController(
-            title: "Что-то пошло не так(",
-            message: "Не удалось войти в систему. Ошибка: \(error.localizedDescription)",
+    func showAuthErrorAlert() {
+        let alertController = UIAlertController(
+            title: "Что-то пошло не так",
+            message: "Не удалось войти в систему",
             preferredStyle: .alert
         )
-        let action = UIAlertAction(title: "Ок", style: .default)
-        alert.addAction(action)
-        present(alert, animated: true)
+        let okAction = UIAlertAction(title: "Ок", style: .default, handler: nil)
+        alertController.addAction(okAction)
+        present(alertController, animated: true, completion: nil)
     }
 }
