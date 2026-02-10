@@ -8,131 +8,115 @@
 import UIKit
 
 final class SplashViewController: UIViewController {
+    // MARK: - Private Properties
     private let storage = OAuth2TokenStorage.shared
     private let profileService = ProfileService.shared
-    private let profileImageService = ProfileImageService.shared
     
-    private lazy var logoImageView: UIImageView = {
-        let image = UIImage(named: "Vector")
-        let imageView = UIImageView(image: image)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        return imageView
-    }()
+    // Используем опционал и lazy для безопасной инициализации
+    private var imageView: UIImageView?
     
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
+        setupImageView()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        // РАЗКОММЕНТИРУЙ для теста регистрации:
-        // storage.token = nil
-        
-        checkAuthStatus()
-    }
-    
-    private func checkAuthStatus() {
+        // Проверяем наличие токена
         if let token = storage.token {
-            print("[SplashVC]: Токен найден, загружаем профиль...")
             fetchProfile(token: token)
         } else {
-            print("[SplashVC]: Токен не найден, открываем экран авторизации")
             presentAuthViewController()
         }
     }
     
-    private func setupUI() {
-        view.backgroundColor = .ypBlack
-        view.addSubview(logoImageView)
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setNeedsStatusBarAppearanceUpdate()
+    }
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
+    // MARK: - Private Methods
+    private func setupImageView() {
+        view.backgroundColor = .black // Устанавливаем фон, чтобы логотип был виден
+        
+        let splashLogo = UIImage(named: "Vector")
+        let imageView = UIImageView(image: splashLogo)
+        
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(imageView)
         
         NSLayoutConstraint.activate([
-            logoImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            logoImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
+        
+        self.imageView = imageView
     }
     
     private func presentAuthViewController() {
         let storyboard = UIStoryboard(name: "Main", bundle: .main)
+        
+        // Безопасно извлекаем контроллер из Storyboard
         guard let authViewController = storyboard.instantiateViewController(withIdentifier: "AuthViewController") as? AuthViewController else {
-            assertionFailure("Failed to instantiate AuthViewController")
             return
         }
+        
         authViewController.delegate = self
         authViewController.modalPresentationStyle = .fullScreen
         present(authViewController, animated: true)
     }
     
     private func switchToTabBarController() {
-        // Получаем активное окно через connectedScenes (современный способ)
-        guard let window = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .flatMap({ $0.windows })
-            .first(where: { $0.isKeyWindow }) else {
-                assertionFailure("Invalid window configuration")
-                return
+        // Безопасный поиск активного окна
+        guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else {
+            return
         }
         
         let tabBarController = UIStoryboard(name: "Main", bundle: .main)
             .instantiateViewController(withIdentifier: "TabBarViewController")
-           
-        print("[SplashVC]: Выполняю подмену rootViewController на TabBar")
-        window.rootViewController = tabBarController
-    }
-}
-
-// MARK: - AuthViewControllerDelegate
-extension SplashViewController: AuthViewControllerDelegate {
-    func didAuthenticate(_ vc: AuthViewController) {
-        print("[SplashVC]: Делегат получил сигнал об успешной авторизации")
         
-        // Сначала скрываем контроллер авторизации
-        vc.dismiss(animated: true) { [weak self] in
-            guard let self = self else { return }
-            
-            if let token = self.storage.token {
-                self.fetchProfile(token: token)
-            } else {
-                print("[SplashVC]: Ошибка - токен не сохранился после авторизации!")
-            }
-        }
+        window.rootViewController = tabBarController
     }
     
     private func fetchProfile(token: String) {
         UIBlockingProgressHUD.show()
         
         profileService.fetchProfile(token) { [weak self] result in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
+            UIBlockingProgressHUD.dismiss()
+            
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let profile):
+                // Загружаем аватарку сразу после получения профиля
+                ProfileImageService.shared.fetchProfileImageURL(username: profile.username) { _ in }
+                self.switchToTabBarController()
                 
-                switch result {
-                case .success(let profile):
-                    print("[SplashVC]: Профиль \(profile.username) загружен успешно")
-                    
-                    // Загружаем аватарку параллельно
-                    self.profileImageService.fetchProfileImageURL(username: profile.username) { _ in }
-                    
-                    // Прячем HUD и переключаем экран
-                    UIBlockingProgressHUD.dismiss()
-                    self.switchToTabBarController()
-                    
-                case .failure(let error):
-                    UIBlockingProgressHUD.dismiss()
-                    print("[SplashVC]: Ошибка загрузки профиля: \(error)")
-                    self.showErrorAlert()
-                }
+            case .failure(let error):
+                print("[SplashViewController]: Error fetching profile - \(error)")
+                // В случае ошибки можно показать алерт или вернуть на экран авторизации
+                self.presentAuthViewController()
             }
         }
     }
-    
-    private func showErrorAlert() {
-        let alert = UIAlertController(
-            title: "Что-то пошло не так(",
-            message: "Не удалось войти в систему",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "Ок", style: .default))
-        present(alert, animated: true)
+}
+
+// MARK: - AuthViewControllerDelegate
+extension SplashViewController: AuthViewControllerDelegate {
+    func didAuthenticate(_ vc: AuthViewController) {
+        // Сначала скрываем экран авторизации
+        vc.dismiss(animated: true) { [weak self] in
+            guard let self = self,
+                  let token = self.storage.token else { return }
+            
+            // Затем загружаем данные профиля
+            self.fetchProfile(token: token)
+        }
     }
 }
