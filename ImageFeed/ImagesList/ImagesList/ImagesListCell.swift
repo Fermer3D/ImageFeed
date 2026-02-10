@@ -19,8 +19,9 @@ final class ImagesListCell: UITableViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        cellImage.kf.cancelDownloadTask()
-        cellImage.image = UIImage(named: "Stub")
+        cellImage.kf.cancelDownloadTask() // Отменяем загрузку
+        cellImage.image = nil             // Очищаем фото
+        likeButton.setImage(nil, for: .normal) // Очищаем старый лайк перед новой настройкой
     }
     
     @IBAction func likeButtonClicked(_ sender: Any) {

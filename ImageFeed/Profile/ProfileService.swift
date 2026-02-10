@@ -7,11 +7,11 @@
 
 import Foundation
 
-
+// MARK: - Models
 struct ProfileResult: Codable {
     let username: String
     let firstName: String
-    let lastName: String
+    let lastName: String? // Сделаем опциональным для безопасности
     let bio: String?
     
     private enum CodingKeys: String, CodingKey {
@@ -29,40 +29,57 @@ struct Profile {
     let bio: String?
 }
 
+// MARK: - Service
 final class ProfileService {
+    static let shared = ProfileService()
+    
+    private(set) var profile: Profile?
     private var task: URLSessionTask?
     private let urlSession = URLSession.shared
-    static let shared = ProfileService()
-    private(set) var profile: Profile?
     
     private init() {}
     
     func fetchProfile(_ token: String, completion: @escaping (Result<Profile, Error>) -> Void) {
+        // Отменяем текущую задачу перед созданием новой
         task?.cancel()
         
         guard let request = makeProfileRequest(token: token) else {
-            completion(.failure(URLError.badURL as! Error))
+            // Безопасно возвращаем ошибку без принудительного приведения типов
+            completion(.failure(URLError(.badURL)))
             return
         }
         
         let task = urlSession.objectTask(for: request) { [weak self] (result: Result<ProfileResult, Error>) in
-            switch result {
-            case .success(let result):
-                let profile = Profile(
-                    username: result.username,
-                    name: "\(result.firstName) \(result.lastName)"
-                        .trimmingCharacters(in: .whitespaces),
-                    loginName: "@\(result.username)",
-                    bio: result.bio
-                )
-                self?.profile = profile
-                completion(.success(profile))
-            case .failure(let error):
-                print("[fetchProfile]: Ошибка запроса: \(error.localizedDescription)")
-                completion(.failure(error))
+            // Переходим на главный поток для обработки результата и вызова completion
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                
+                switch result {
+                case .success(let profileResult):
+                    // Собираем полное имя безопасно
+                    let fullName = [profileResult.firstName, profileResult.lastName]
+                        .compactMap { $0 }
+                        .joined(separator: " ")
+                    
+                    let profile = Profile(
+                        username: profileResult.username,
+                        name: fullName,
+                        loginName: "@\(profileResult.username)",
+                        bio: profileResult.bio
+                    )
+                    
+                    self.profile = profile
+                    completion(.success(profile))
+                    
+                case .failure(let error):
+                    print("[ProfileService]: Ошибка запроса - \(error.localizedDescription)")
+                    completion(.failure(error))
+                }
+                
+                self.task = nil
             }
-            self?.task = nil
         }
+        
         self.task = task
         task.resume()
     }
