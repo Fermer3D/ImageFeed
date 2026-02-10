@@ -19,7 +19,7 @@ struct ProfileImage: Codable {
     let small: String
     let medium: String
     let large: String
-
+    
     private enum CodingKeys: String, CodingKey {
         case small
         case medium
@@ -59,7 +59,7 @@ final class ProfileImageService {
                     object: self,
                     userInfo: ["URL": avatarURL ?? ""]
                 )
-
+                
             case .failure(let error):
                 print("[fetchProfileImageURL]: Ошибка запроса: \(error.localizedDescription)")
                 completion(.failure(error))

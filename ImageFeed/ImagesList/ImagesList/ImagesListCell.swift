@@ -16,21 +16,24 @@ final class ImagesListCell: UITableViewCell {
     @IBOutlet var dateLabel: UILabel!
     
     weak var delegate: ImagesListCellDelegate?
-        
-        override func prepareForReuse() {
-            super.prepareForReuse()
-            cellImage.kf.cancelDownloadTask()
-            cellImage.image = UIImage(named: "Stub")
-        }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        cellImage.kf.cancelDownloadTask()
+        cellImage.image = UIImage(named: "Stub")
+    }
     
     @IBAction func likeButtonClicked(_ sender: Any) {
         delegate?.imageListCellDidTapLike(self)
     }
+    
+    func setIsLiked(_ isLiked: Bool) {
+        let imageName = isLiked ? "likeButtonOn" : "likeButtonOff"
         
-        func setIsLiked(_ isLiked: Bool) {
-            let imageName = isLiked ? "likeButtonOn" : "likeButtonOff"
-            likeButton.setImage(UIImage(named: imageName), for: .normal)
-        }
-
+        let image = UIImage(named: imageName)?.withRenderingMode(.alwaysOriginal)
+        
+        likeButton.setImage(image, for: .normal)
+    }
+    
 }
 

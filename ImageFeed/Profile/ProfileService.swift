@@ -13,7 +13,7 @@ struct ProfileResult: Codable {
     let firstName: String
     let lastName: String
     let bio: String?
-
+    
     private enum CodingKeys: String, CodingKey {
         case username
         case firstName = "first_name"
@@ -47,19 +47,19 @@ final class ProfileService {
         
         let task = urlSession.objectTask(for: request) { [weak self] (result: Result<ProfileResult, Error>) in
             switch result {
-                case .success(let result):
-                    let profile = Profile(
-                        username: result.username,
-                        name: "\(result.firstName) \(result.lastName)"
-                            .trimmingCharacters(in: .whitespaces),
-                        loginName: "@\(result.username)",
-                        bio: result.bio
-                    )
-                    self?.profile = profile
-                    completion(.success(profile))
-                case .failure(let error):
-                    print("[fetchProfile]: Ошибка запроса: \(error.localizedDescription)")
-                    completion(.failure(error))
+            case .success(let result):
+                let profile = Profile(
+                    username: result.username,
+                    name: "\(result.firstName) \(result.lastName)"
+                        .trimmingCharacters(in: .whitespaces),
+                    loginName: "@\(result.username)",
+                    bio: result.bio
+                )
+                self?.profile = profile
+                completion(.success(profile))
+            case .failure(let error):
+                print("[fetchProfile]: Ошибка запроса: \(error.localizedDescription)")
+                completion(.failure(error))
             }
             self?.task = nil
         }
