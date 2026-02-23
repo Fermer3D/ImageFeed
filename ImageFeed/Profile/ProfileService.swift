@@ -7,12 +7,13 @@
 
 import Foundation
 
+// MARK: - Models
 struct ProfileResult: Codable {
     let username: String
     let firstName: String
-    let lastName: String?
+    let lastName: String? // Сделаем опциональным для безопасности
     let bio: String?
-
+    
     private enum CodingKeys: String, CodingKey {
         case username
         case firstName = "first_name"
@@ -28,6 +29,7 @@ struct Profile {
     let bio: String?
 }
 
+// MARK: - Service
 final class ProfileService {
     static let shared = ProfileService()
     
@@ -38,67 +40,64 @@ final class ProfileService {
     private init() {}
     
     func fetchProfile(_ token: String, completion: @escaping (Result<Profile, Error>) -> Void) {
-        assert(Thread.isMainThread)
-        
-        // Если запрос уже выполняется, не запускаем новый
-        if task != nil { return }
-        
+        // Отменяем текущую задачу перед созданием новой
         task?.cancel()
         
         guard let request = makeProfileRequest(token: token) else {
-            let error = NetworkError.invalidRequest
-            print("[ProfileService.fetchProfile]: \(error) - Не удалось создать request")
-            completion(.failure(error))
+            // Безопасно возвращаем ошибку без принудительного приведения типов
+            completion(.failure(URLError(.badURL)))
             return
         }
         
         let task = urlSession.objectTask(for: request) { [weak self] (result: Result<ProfileResult, Error>) in
+            // Переходим на главный поток для обработки результата и вызова completion
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 
                 switch result {
-                case .success(let result):
+                case .success(let profileResult):
+                    // Собираем полное имя безопасно
+                    let fullName = [profileResult.firstName, profileResult.lastName]
+                        .compactMap { $0 }
+                        .joined(separator: " ")
+                    
                     let profile = Profile(
-                        username: result.username,
-                        name: "\(result.firstName) \(result.lastName ?? "")"
-                            .trimmingCharacters(in: .whitespaces),
-                        loginName: "@\(result.username)",
-                        bio: result.bio
+                        username: profileResult.username,
+                        name: fullName,
+                        loginName: "@\(profileResult.username)",
+                        bio: profileResult.bio
                     )
+                    
                     self.profile = profile
                     completion(.success(profile))
                     
                 case .failure(let error):
-                    self.logError(error)
+                    print("[ProfileService]: Ошибка запроса - \(error.localizedDescription)")
                     completion(.failure(error))
                 }
+                
                 self.task = nil
             }
         }
+        
         self.task = task
         task.resume()
     }
     
     private func makeProfileRequest(token: String) -> URLRequest? {
-        guard let url = URL(string: "https://api.unsplash.com/me") else { return nil }
+        guard let url = URL(string: "https://api.unsplash.com/me") else {
+            return nil
+        }
+        
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         return request
     }
     
-    private func logError(_ error: Error) {
-        if let networkError = error as? NetworkError {
-            switch networkError {
-            case .httpStatusCode(let code):
-                print("[ProfileService.fetchProfile]: NetworkError - код ошибки \(code)")
-            case .decodingError(let decodingError):
-                print("[ProfileService.fetchProfile]: Decoding error - \(decodingError)")
-            default:
-                print("[ProfileService.fetchProfile]: NetworkError - \(networkError)")
-            }
-        } else {
-            print("[ProfileService.fetchProfile]: Unknown error - \(error.localizedDescription)")
-        }
+    func reset() {
+        profile = nil
+        task?.cancel()
+        task = nil
     }
 }
