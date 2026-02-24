@@ -16,25 +16,26 @@ final class ImagesListCell: UITableViewCell {
     @IBOutlet var dateLabel: UILabel!
     
     weak var delegate: ImagesListCellDelegate?
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        cellImage.kf.cancelDownloadTask() // Отменяем загрузку
-        cellImage.image = nil             // Очищаем фото
-        likeButton.setImage(nil, for: .normal) // Очищаем старый лайк перед новой настройкой
-    }
-    
-    @IBAction func likeButtonClicked(_ sender: Any) {
-        delegate?.imageListCellDidTapLike(self)
-    }
-    
-    func setIsLiked(_ isLiked: Bool) {
-        let imageName = isLiked ? "LikeButtonOn" : "LikeButtonOff"
         
-        let image = UIImage(named: imageName)?.withRenderingMode(.alwaysOriginal)
+        override func prepareForReuse() {
+            super.prepareForReuse()
+            cellImage.kf.cancelDownloadTask()
+            cellImage.image = nil
+            likeButton.setImage(nil, for: .normal)
+        }
         
-        likeButton.setImage(image, for: .normal)
+        @IBAction func likeButtonClicked(_ sender: Any) {
+            delegate?.imageListCellDidTapLike(self)
+        }
+        
+        func setIsLiked(_ isLiked: Bool) {
+            let imageName = isLiked ? "LikeButtonOn" : "LikeButtonOff"
+            
+            // Устанавливаем идентификатор для UI-тестов
+            // Теперь тест поймет, какая это кнопка: "LikeButtonOn" или "LikeButtonOff"
+            likeButton.accessibilityIdentifier = imageName
+            
+            let image = UIImage(named: imageName)?.withRenderingMode(.alwaysOriginal)
+            likeButton.setImage(image, for: .normal)
+        }
     }
-    
-}
-

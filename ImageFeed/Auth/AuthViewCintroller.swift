@@ -14,6 +14,9 @@ protocol AuthViewControllerDelegate: AnyObject {
 
 final class AuthViewController: UIViewController {
     
+    // Добавляем Outlet для кнопки (свяжи его в Storyboard!)
+    @IBOutlet private var loginButton: UIButton!
+    
     private let showWebViewSegueIdentifier = "ShowWebView"
     private let oauth2Service = OAuth2Service.shared
     
@@ -21,6 +24,10 @@ final class AuthViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Устанавливаем ID для UI-теста
+        loginButton.accessibilityIdentifier = "Authenticate"
+        
         configureBackButton()
     }
     
@@ -33,8 +40,7 @@ final class AuthViewController: UIViewController {
                 return
             }
             
-            // Сборка MVP модуля
-            let authHelper = AuthHelper() // Использует AuthConfiguration.standard по умолчанию
+            let authHelper = AuthHelper()
             let webViewPresenter = WebViewPresenter(authHelper: authHelper)
             
             webViewViewController.presenter = webViewPresenter
@@ -59,8 +65,6 @@ final class AuthViewController: UIViewController {
 // MARK: - WebViewViewControllerDelegate
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-        // По ТЗ лучше сначала запустить загрузку токена, а потом скрывать WebView,
-        // либо скрыть WebView и показать HUD на AuthViewController.
         vc.dismiss(animated: true) { [weak self] in
             guard let self = self else { return }
             
