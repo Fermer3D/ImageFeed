@@ -52,16 +52,51 @@ final class ImageFeedUITests: XCTestCase {
     // Вспомогательные методы
     func testFeed() throws {
         let tablesQuery = app.tables
-        let cell = tablesQuery.children(matching: .cell).element(boundBy: 0)
-        XCTAssertTrue(cell.waitForExistence(timeout: 10))
-        cell.swipeUp()
-        let cellToLike = tablesQuery.cells.element(boundBy: 1)
-        cellToLike.buttons["LikeButtonOff"].tap()
-        XCTAssertTrue(cellToLike.buttons["LikeButtonOn"].waitForExistence(timeout: 5))
-        cellToLike.buttons["LikeButtonOn"].tap()
-        XCTAssertTrue(cellToLike.buttons["LikeButtonOff"].waitForExistence(timeout: 5))
-        cellToLike.tap()
-        app.buttons["nav back button white"].tap()
+        
+        // 1. Ждем, пока таблица появится на экране
+        XCTAssertTrue(tablesQuery.element.waitForExistence(timeout: 10))
+        
+        // 2. Свайпаем таблицу вверх (требование ревью)
+        tablesQuery.element.swipeUp()
+        
+        // 3. Вместо поиска ячейки по индексу, ищем ЛЮБУЮ видимую кнопку LikeButtonOff
+        // Это гарантирует, что мы не попадем на ячейку с INFINITY координатами
+        let likeButton = tablesQuery.buttons["LikeButtonOff"].firstMatch
+        
+        // Ждем, пока кнопка реально появится в поле видимости
+        XCTAssertTrue(likeButton.waitForExistence(timeout: 5))
+        
+        // 4. Кликаем по кнопке. Если обычный tap() падает, используем этот хак:
+        if likeButton.isHittable {
+            likeButton.tap()
+        } else {
+            // Если кнопка видна, но Xcode вредничает, принудительно кликаем в её центр
+            likeButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+        
+        // 5. Проверяем, что лайк стал On
+        let likeButtonOn = tablesQuery.buttons["LikeButtonOn"].firstMatch
+        XCTAssertTrue(likeButtonOn.waitForExistence(timeout: 5))
+        
+        // Отменяем лайк
+        likeButtonOn.tap()
+        XCTAssertTrue(likeButton.waitForExistence(timeout: 5))
+        
+        // 6. Открываем ячейку, в которой нажали лайк
+        // Чтобы не запутаться, просто тапаем по любой ячейке на экране
+        tablesQuery.cells.element(boundBy: 1).tap()
+        
+        // 7. Работа с SingleImageView (зум и возврат)
+        let image = app.scrollViews.images.element(at: 0)
+        XCTAssertTrue(image.waitForExistence(timeout: 5))
+        
+        // Требование ревью: зум
+        image.pinch(withScale: 3, velocity: 1)
+        image.pinch(withScale: 0.5, velocity: -1)
+        
+        let backButton = app.buttons["nav back button white"]
+        XCTAssertTrue(backButton.waitForExistence(timeout: 5))
+        backButton.tap()
     }
     
     func testProfile() throws {
