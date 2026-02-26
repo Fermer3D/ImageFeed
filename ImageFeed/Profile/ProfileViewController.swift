@@ -19,6 +19,7 @@ final class ProfileViewController: UIViewController, ProfileViewControllerProtoc
     private let descriptionLabel = UILabel()
     private let profileImage = UIImageView()
     
+    
     private let exitButton = UIButton.systemButton(
         with: UIImage(named: "Exit") ?? UIImage(),
         target: nil,
