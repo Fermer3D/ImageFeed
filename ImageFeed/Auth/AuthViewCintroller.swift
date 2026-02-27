@@ -14,6 +14,9 @@ protocol AuthViewControllerDelegate: AnyObject {
 
 final class AuthViewController: UIViewController {
     
+    // Добавляем Outlet для кнопки (свяжи его в Storyboard!)
+    @IBOutlet private var loginButton: UIButton!
+    
     private let showWebViewSegueIdentifier = "ShowWebView"
     private let oauth2Service = OAuth2Service.shared
     
@@ -21,6 +24,10 @@ final class AuthViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Устанавливаем ID для UI-теста
+        loginButton.accessibilityIdentifier = "Authenticate"
+        
         configureBackButton()
     }
     
@@ -32,7 +39,14 @@ final class AuthViewController: UIViewController {
                 assertionFailure("Failed to prepare for \(showWebViewSegueIdentifier)")
                 return
             }
+            
+            let authHelper = AuthHelper()
+            let webViewPresenter = WebViewPresenter(authHelper: authHelper)
+            
+            webViewViewController.presenter = webViewPresenter
+            webViewPresenter.view = webViewViewController
             webViewViewController.delegate = self
+            
         } else {
             super.prepare(for: segue, sender: sender)
         }
@@ -48,21 +62,25 @@ final class AuthViewController: UIViewController {
     }
 }
 
+// MARK: - WebViewViewControllerDelegate
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-        vc.dismiss(animated: true)
-        
-        UIBlockingProgressHUD.show()
-        
-        oauth2Service.fetchOAuthToken(code: code) { result in
-            UIBlockingProgressHUD.dismiss()
+        vc.dismiss(animated: true) { [weak self] in
+            guard let self = self else { return }
             
-            switch result {
-            case .success:
-                self.delegate?.didAuthenticate(self)
-            case let .failure(error):
-                print("Ошибка при аутентификации: \(error.localizedDescription)")
-                self.showAuthErrorAlert()
+            UIBlockingProgressHUD.show()
+            
+            self.oauth2Service.fetchOAuthToken(code: code) { [weak self] result in
+                guard let self = self else { return }
+                UIBlockingProgressHUD.dismiss()
+                
+                switch result {
+                case .success:
+                    self.delegate?.didAuthenticate(self)
+                case let .failure(error):
+                    print("[AuthViewController]: OAuth token error - \(error.localizedDescription)")
+                    self.showAuthErrorAlert()
+                }
             }
         }
     }
@@ -72,10 +90,7 @@ extension AuthViewController: WebViewViewControllerDelegate {
     }
 }
 
-//    func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
-//        navigationController?.popViewController(animated: true)
-//    }
-
+// MARK: - Error Alert
 extension AuthViewController {
     func showAuthErrorAlert() {
         let alertController = UIAlertController(
@@ -83,8 +98,8 @@ extension AuthViewController {
             message: "Не удалось войти в систему",
             preferredStyle: .alert
         )
-        let okAction = UIAlertAction(title: "Ок", style: .default, handler: nil)
+        let okAction = UIAlertAction(title: "Ок", style: .default)
         alertController.addAction(okAction)
-        present(alertController, animated: true, completion: nil)
+        present(alertController, animated: true)
     }
 }

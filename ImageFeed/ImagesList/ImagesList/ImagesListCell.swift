@@ -16,25 +16,36 @@ final class ImagesListCell: UITableViewCell {
     @IBOutlet var dateLabel: UILabel!
     
     weak var delegate: ImagesListCellDelegate?
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        cellImage.kf.cancelDownloadTask() // Отменяем загрузку
-        cellImage.image = nil             // Очищаем фото
-        likeButton.setImage(nil, for: .normal) // Очищаем старый лайк перед новой настройкой
-    }
-    
-    @IBAction func likeButtonClicked(_ sender: Any) {
-        delegate?.imageListCellDidTapLike(self)
-    }
-    
-    func setIsLiked(_ isLiked: Bool) {
-        let imageName = isLiked ? "LikeButtonOn" : "LikeButtonOff"
         
-        let image = UIImage(named: imageName)?.withRenderingMode(.alwaysOriginal)
-        
-        likeButton.setImage(image, for: .normal)
+        override func awakeFromNib() {
+            super.awakeFromNib()
+            // Устанавливаем идентификатор для самой ячейки, чтобы тест мог её найти
+            self.accessibilityIdentifier = "ImagesListCell"
+            // Идентификатор для картинки, чтобы тап по ячейке в тесте был точнее
+            cellImage.accessibilityIdentifier = "ImagesListImage"
+        }
+            
+        override func prepareForReuse() {
+            super.prepareForReuse()
+            cellImage.kf.cancelDownloadTask()
+            cellImage.image = nil
+            likeButton.setImage(nil, for: .normal)
+        }
+            
+        @IBAction func likeButtonClicked(_ sender: Any) {
+            delegate?.imageListCellDidTapLike(self)
+        }
+            
+        func setIsLiked(_ isLiked: Bool) {
+            let imageName = isLiked ? "LikeButtonOn" : "LikeButtonOff"
+            
+            // Устанавливаем идентификатор для кнопки лайка
+            likeButton.accessibilityIdentifier = imageName
+                
+            let image = UIImage(named: imageName)?.withRenderingMode(.alwaysOriginal)
+            likeButton.setImage(image, for: .normal)
+            
+            // Помогаем VoiceOver и тестам понять состояние кнопки
+            likeButton.accessibilityLabel = isLiked ? "Unlike" : "Like"
+        }
     }
-    
-}
-
